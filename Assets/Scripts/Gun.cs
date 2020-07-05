@@ -1,14 +1,19 @@
 ﻿using UnityEngine;
-
+using System.Collections;
 public class Gun : MonoBehaviour
 {
     public float damage = 10f;
     public float range = 100f;
     public float impactForce = 300f;
     public float fireRate = 15f;
+    public float aimSpeed;
 
     public Camera fpsCam;
+
+    [Header("Gun Camera Options")]
     public ParticleSystem muzzleFlash;
+    public Light muzzleFlashLight;
+    public float lightDuration;
     public GameObject impactEffect;
     public Animator animator;
 
@@ -18,8 +23,7 @@ public class Gun : MonoBehaviour
     public float fovSpeed = 15.0f;
     //Default camera field of view
     [Tooltip("Default value for camera field of view (40 is recommended).")]
-    public float defaultFov = 120.0f;
-
+    public float defaultFov = 90.0f;
     public float aimFov = 25.0f;
 
     [Header("Audio Source")]
@@ -40,11 +44,13 @@ public class Gun : MonoBehaviour
     }
     public soundClips SoundClips;
 
+
+
+    
     public float nextTimeToFire = 0f;
 
     //Check if reloading
     private bool isReloading;
-
     //Holstering weapon
     private bool hasBeenHolstered = false;
     //If weapon is holstered
@@ -57,25 +63,51 @@ public class Gun : MonoBehaviour
     private bool isWalking;
     //Check if inspecting weapon
     private bool isInspecting;
-
+    //check if sound has played
     private bool soundHasPlayed = false;
+
+    //Ammo
+    public int maxAmmo = 31;
+    private int currentAmmo;
+    public float reloadTime = 2f;
+
+    private Vector3 originalPosition;
+    public Vector3 aimPosition;
+    public float adsSpeed = 8f;
+ 
+
     // Start is called before the first frame update
     void Start()
     {
         animator = this.GetComponent<Animator>();
+        currentAmmo = maxAmmo;
+        originalPosition = transform.localPosition;
     }
 
     // Update is called once per frame
     void Update()
     {
+        if(isReloading)
+        {
+            return;
+        }
 
         Trigger();
         Reload();
-       // Aim();
+        //Aim();
+        ADS();
+    }
+
+    private void OnEnable()
+    {
+        isReloading = false;
+        animator = this.GetComponent<Animator>();
+        isReloading = false;
     }
 
     public virtual void Trigger()
-    {
+    {   
+
         if (Input.GetButton("Fire1") && Time.time >= nextTimeToFire)
         {
             nextTimeToFire = Time.time + 1f / fireRate;
@@ -85,10 +117,32 @@ public class Gun : MonoBehaviour
 
     public virtual void  Shoot()
     {
+        /*
+        if(!isAiming)
+        {
+            muzzleFlash.Play();
+            shootAudioSource.clip = SoundClips.shootSound;
+            shootAudioSource.Play();
+            StartCoroutine(MuzzleFlashLight());
+            animator.Play("Fire", 0, 0f);
+        }
+        else if(isAiming)
+        {
+            muzzleFlash.Play();
+            shootAudioSource.clip = SoundClips.shootSound;
+            shootAudioSource.Play();
+            StartCoroutine(MuzzleFlashLight());
+            animator.Play("Aim Fire", 0, 0f);
+        }
+        */
+
         muzzleFlash.Play();
         shootAudioSource.clip = SoundClips.shootSound;
         shootAudioSource.Play();
+        StartCoroutine(MuzzleFlashLight());
         animator.Play("Fire", 0, 0f);
+
+        currentAmmo--;
 
         RaycastHit hit;
         if(Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward,out hit, range))
@@ -111,49 +165,116 @@ public class Gun : MonoBehaviour
 
     }
 
-    public void Aim()
+    public void ADS()
+    {
+        if (Input.GetButton("Fire2") && !isReloading)
+        {
+            transform.localPosition = Vector3.Lerp(transform.localPosition, aimPosition, Time.deltaTime * adsSpeed );
+            isAiming = true;
+            fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView,
+              aimFov, fovSpeed * Time.deltaTime);
+            // animator.SetBool("Aim", true);
+        }
+        else
+        {
+            transform.localPosition = Vector3.Lerp(transform.localPosition, originalPosition, Time.deltaTime * adsSpeed);
+            isAiming = false;
+            fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView,
+            defaultFov, fovSpeed * Time.deltaTime);
+            // animator.SetBool("Aim", false);
+        }
+    }
+
+   /* public void Aim()
     {
         if (Input.GetButton("Fire2") && !isReloading && !isRunning && !isInspecting)
+        if (Input.GetButton("Fire2") && !isReloading)
         {
 
             isAiming = true;
-            //Start aiming
+            Start aiming
             animator.SetBool("Aim", true);
 
-            //When right click is released
-            fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView,
+            When right click is released
+             fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView,
                 aimFov, fovSpeed * Time.deltaTime);
 
             if (!soundHasPlayed)
             {
                 mainAudioSource.clip = SoundClips.aimSound;
                 mainAudioSource.Play();
-
                 soundHasPlayed = true;
             }
         }
         else
         {
-            //When right click is released
-            fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView,
-                defaultFov, fovSpeed * Time.deltaTime);
+            When right click is released
+             fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView,
+                 defaultFov, fovSpeed * Time.deltaTime);
 
             isAiming = false;
-            //Stop aiming
+            Stop aiming
             animator.SetBool("Aim", false);
-
             soundHasPlayed = false;
         }
-    }
+
+    }*/
+
 
     void Reload()
     {
-        if (Input.GetKeyDown(KeyCode.R))
+        if (Input.GetKeyDown(KeyCode.R) && currentAmmo >= 0 && currentAmmo != maxAmmo)
         {
-            animator.Play("Reload Out Of Ammo", 0, 0f);
-            shootAudioSource.clip = SoundClips.reloadSoundAmmoLeft;
-            shootAudioSource.Play();
+            StartCoroutine(ReloadCouroutinewithAmmo());
         }
+        else if (Input.GetKeyDown(KeyCode.R) && currentAmmo >= 0 && currentAmmo != maxAmmo && isAiming )
+        {
+            isAiming = false;
+            fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView,
+            defaultFov, fovSpeed * Time.deltaTime);
+            StartCoroutine(ReloadCouroutinewithAmmo());
+        }
+        else if (currentAmmo <= 0)
+        {
+            StartCoroutine(ReloadCouroutineNoAmmo());
+        }
+        else if (currentAmmo <= 0 && isAiming)
+        {
+            isAiming = false;
+            fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView,
+            defaultFov, fovSpeed * Time.deltaTime);
+            StartCoroutine(ReloadCouroutineNoAmmo());
+        }
+    }
+
+    IEnumerator ReloadCouroutineNoAmmo()
+    {
+            isReloading = true;
+            animator.Play("Reload Out Of Ammo", 0, 0f);
+            shootAudioSource.clip = SoundClips.reloadSoundOutOfAmmo;
+            shootAudioSource.Play();
+            yield return new WaitForSeconds(reloadTime);
+            currentAmmo = maxAmmo;
+            isReloading = false;
+    }
+
+    IEnumerator ReloadCouroutinewithAmmo()
+    {
+        isReloading = true;
+        animator.Play("Reload Ammo Left", 0, 0f);
+        shootAudioSource.clip = SoundClips.reloadSoundAmmoLeft;
+        shootAudioSource.Play();
+        yield return new WaitForSeconds(reloadTime);
+        currentAmmo = maxAmmo;
+        isReloading = false;
+    }
+
+    private IEnumerator MuzzleFlashLight()
+    {
+
+        muzzleFlashLight.enabled = true;
+        yield return new WaitForSeconds(lightDuration);
+        muzzleFlashLight.enabled = false;
     }
 }
 
