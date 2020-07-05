@@ -16,6 +16,14 @@ public class Gun : MonoBehaviour
     public float lightDuration;
     public GameObject impactEffect;
     public Animator animator;
+    public mouseLook mouselook;
+
+    //percentage
+    public float adsSensitivityX;
+    public float adsSensitivityY;
+    public float defaultX;
+    public float defaultY;
+
 
     [Header("Gun Camera Options")]
     //How fast the camera field of view changes when aiming 
@@ -43,9 +51,6 @@ public class Gun : MonoBehaviour
         public AudioClip aimSound;
     }
     public soundClips SoundClips;
-
-
-
     
     public float nextTimeToFire = 0f;
 
@@ -65,6 +70,8 @@ public class Gun : MonoBehaviour
     private bool isInspecting;
     //check if sound has played
     private bool soundHasPlayed = false;
+    //adjustSen
+    private bool isAdjust;
 
     //Ammo
     public int maxAmmo = 31;
@@ -74,14 +81,20 @@ public class Gun : MonoBehaviour
     private Vector3 originalPosition;
     public Vector3 aimPosition;
     public float adsSpeed = 8f;
- 
+
+    
 
     // Start is called before the first frame update
     void Start()
     {
         animator = this.GetComponent<Animator>();
+        mouselook = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<mouseLook>();
+        //Get default sensitivity
+        defaultX = mouselook.mouseSensitivityX;
+        defaultY = mouselook.mouseSensitivityY;
         currentAmmo = maxAmmo;
         originalPosition = transform.localPosition;
+     
     }
 
     // Update is called once per frame
@@ -94,7 +107,6 @@ public class Gun : MonoBehaviour
 
         Trigger();
         Reload();
-        //Aim();
         ADS();
     }
 
@@ -117,31 +129,13 @@ public class Gun : MonoBehaviour
 
     public virtual void  Shoot()
     {
-        /*
-        if(!isAiming)
-        {
-            muzzleFlash.Play();
-            shootAudioSource.clip = SoundClips.shootSound;
-            shootAudioSource.Play();
-            StartCoroutine(MuzzleFlashLight());
-            animator.Play("Fire", 0, 0f);
-        }
-        else if(isAiming)
-        {
-            muzzleFlash.Play();
-            shootAudioSource.clip = SoundClips.shootSound;
-            shootAudioSource.Play();
-            StartCoroutine(MuzzleFlashLight());
-            animator.Play("Aim Fire", 0, 0f);
-        }
-        */
-
         muzzleFlash.Play();
         shootAudioSource.clip = SoundClips.shootSound;
         shootAudioSource.Play();
         StartCoroutine(MuzzleFlashLight());
         animator.Play("Fire", 0, 0f);
 
+        //wasting ammo?
         currentAmmo--;
 
         RaycastHit hit;
@@ -166,22 +160,41 @@ public class Gun : MonoBehaviour
     }
 
     public void ADS()
-    {
+    {   
+       
         if (Input.GetButton("Fire2") && !isReloading)
         {
             transform.localPosition = Vector3.Lerp(transform.localPosition, aimPosition, Time.deltaTime * adsSpeed );
             isAiming = true;
-            fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView,
-              aimFov, fovSpeed * Time.deltaTime);
+            fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView, aimFov, fovSpeed * Time.deltaTime);
+            adjustSensitivity();
             // animator.SetBool("Aim", true);
         }
         else
         {
             transform.localPosition = Vector3.Lerp(transform.localPosition, originalPosition, Time.deltaTime * adsSpeed);
             isAiming = false;
-            fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView,
-            defaultFov, fovSpeed * Time.deltaTime);
+            fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView, defaultFov, fovSpeed * Time.deltaTime);
+            adjustSensitivity();
             // animator.SetBool("Aim", false);
+        }
+    }
+
+    void adjustSensitivity()
+    {
+       if( isAiming && !isAdjust )
+        {
+            mouselook.mouseSensitivityX = mouselook.mouseSensitivityX * adsSensitivityX;
+            Debug.Log(mouselook.mouseSensitivityX);
+            mouselook.mouseSensitivityY = mouselook.mouseSensitivityY * adsSensitivityY;
+            Debug.Log(mouselook.mouseSensitivityY);
+            isAdjust = true;
+        }
+       else if (!isAiming && isAdjust)
+        {
+            mouselook.mouseSensitivityX = defaultX;
+            mouselook.mouseSensitivityY = defaultY;
+            isAdjust = false;
         }
     }
 

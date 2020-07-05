@@ -7289,6 +7289,11 @@ MonoBehaviour:
   impactEffect: {fileID: 1133313454119596, guid: 79927c6543a058b4383885fac101fe2e,
     type: 3}
   animator: {fileID: 0}
+  mouselook: {fileID: 0}
+  adsSensitivityX: 0
+  adsSensitivityY: 0
+  defaultX: 0
+  defaultY: 0
   fovSpeed: 15
   defaultFov: 60
   aimFov: 40
@@ -7563,6 +7568,11 @@ MonoBehaviour:
   impactEffect: {fileID: 1133313454119596, guid: 79927c6543a058b4383885fac101fe2e,
     type: 3}
   animator: {fileID: 1863485495}
+  mouselook: {fileID: 0}
+  adsSensitivityX: 0.6
+  adsSensitivityY: 0.6
+  defaultX: 0
+  defaultY: 0
   fovSpeed: 15
   defaultFov: 60
   aimFov: 25
