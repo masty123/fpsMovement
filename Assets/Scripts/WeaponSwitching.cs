@@ -21,6 +21,7 @@ public class WeaponSwitching : MonoBehaviour
             if (selectedWeapon >= transform.childCount - 1)
             {
                 selectedWeapon = 0;
+                
             }
             else
             {

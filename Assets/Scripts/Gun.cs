@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.UI;
 public class Gun : MonoBehaviour
 {
     public float damage = 10f;
@@ -14,7 +15,7 @@ public class Gun : MonoBehaviour
     public ParticleSystem muzzleFlash;
     public Light muzzleFlashLight;
     public float lightDuration;
-    public GameObject impactEffect;
+    //public GameObject impactEffect;
     public Animator animator;
     public mouseLook mouselook;
 
@@ -39,6 +40,10 @@ public class Gun : MonoBehaviour
     public AudioSource mainAudioSource;
     //Audio source used for shoot sound
     public AudioSource shootAudioSource;
+
+    //crosshair
+    public Image crosshair;
+
 
     [System.Serializable]
     public class soundClips
@@ -82,13 +87,44 @@ public class Gun : MonoBehaviour
     public Vector3 aimPosition;
     public float adsSpeed = 8f;
 
-    
+    [Tooltip("How much force is applied to the bullet when shooting.")]
+    public float bulletForce = 400.0f;
+
+    //new bullet hole
+    public GameObject bulletHole;
+    public LayerMask canBeShot;
+
+    [System.Serializable]
+    public class prefabs
+    {
+        [Header("Prefabs")]
+        public Transform bulletPrefab;
+        public Transform casingPrefab;
+    }
+    public prefabs Prefabs;
+
+    [System.Serializable]
+    public class spawnpoints
+    {
+        [Header("Spawnpoints")]
+        //Array holding casing spawn points 
+        //(some weapons use more than one casing spawn)
+        //Casing spawn point array
+        public Transform casingSpawnPoint;
+        //Bullet prefab spawn from this point
+        public Transform bulletSpawnPoint;
+    }
+    public spawnpoints Spawnpoints;
+
+
+
 
     // Start is called before the first frame update
     void Start()
     {
         animator = this.GetComponent<Animator>();
         mouselook = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<mouseLook>();
+        crosshair = GameObject.FindGameObjectWithTag("Crosshair").GetComponent<Image>();
         //Get default sensitivity
         defaultX = mouselook.mouseSensitivityX;
         defaultY = mouselook.mouseSensitivityY;
@@ -115,6 +151,9 @@ public class Gun : MonoBehaviour
         isReloading = false;
         animator = this.GetComponent<Animator>();
         isReloading = false;
+        shootAudioSource.clip = SoundClips.takeOutSound;
+        shootAudioSource.Play();
+
     }
 
     public virtual void Trigger()
@@ -124,6 +163,28 @@ public class Gun : MonoBehaviour
         {
             nextTimeToFire = Time.time + 1f / fireRate;
             Shoot();
+            
+            /*
+            //Spawn bullet from bullet spawnpoint
+            var bullet = (Transform)Instantiate(
+                Prefabs.bulletPrefab,
+                Spawnpoints.bulletSpawnPoint.transform.position,
+                Spawnpoints.bulletSpawnPoint.transform.rotation);
+
+            //Add velocity to the bullet
+            bullet.GetComponent<Rigidbody>().velocity =
+                bullet.transform.forward * bulletForce;
+           */
+
+            //Spawn casing prefab at spawnpoint
+            var casing = Instantiate(Prefabs.casingPrefab,
+                Spawnpoints.casingSpawnPoint.transform.position,
+                Spawnpoints.casingSpawnPoint.transform.rotation);
+
+            //Add velocity to the bullet
+           //casing.GetComponent<Rigidbody>().velocity =
+            //    casing.transform.forward * bulletForce;
+
         }
     }
 
@@ -153,8 +214,17 @@ public class Gun : MonoBehaviour
             {
                 hit.rigidbody.AddForce(-hit.normal * impactForce);
             }
-            GameObject impactGO = Instantiate(impactEffect, hit.point, Quaternion.LookRotation(hit.normal));
-            Destroy(impactGO, 2f);
+            //GameObject impactGO = Instantiate(impactEffect, hit.point, Quaternion.LookRotation(hit.normal));
+            //Destroy(impactGO, 2f);
+            hit = new RaycastHit();
+            if(Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward, out hit, range, canBeShot))
+            {
+                GameObject impactGO = Instantiate(bulletHole, hit.point + hit.normal * 0.001f, Quaternion.identity);
+                impactGO.transform.LookAt(hit.point + hit.normal);
+                Destroy(impactGO, 5f);
+            }
+
+
         }
 
     }
@@ -168,7 +238,7 @@ public class Gun : MonoBehaviour
             isAiming = true;
             fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView, aimFov, fovSpeed * Time.deltaTime);
             adjustSensitivity();
-            // animator.SetBool("Aim", true);
+            crosshair.color = new Color(crosshair.color.r, crosshair.color.g, crosshair.color.b, 0f);
         }
         else
         {
@@ -176,7 +246,7 @@ public class Gun : MonoBehaviour
             isAiming = false;
             fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView, defaultFov, fovSpeed * Time.deltaTime);
             adjustSensitivity();
-            // animator.SetBool("Aim", false);
+            crosshair.color = new Color(crosshair.color.r, crosshair.color.g, crosshair.color.b, 0.5f);
         }
     }
 
