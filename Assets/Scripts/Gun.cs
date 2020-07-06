@@ -182,8 +182,8 @@ public class Gun : MonoBehaviour
                 Spawnpoints.casingSpawnPoint.transform.rotation);
 
             //Add velocity to the bullet
-           //casing.GetComponent<Rigidbody>().velocity =
-            //    casing.transform.forward * bulletForce;
+           casing.GetComponent<Rigidbody>().velocity =
+                casing.transform.right * 5f;
 
         }
     }
