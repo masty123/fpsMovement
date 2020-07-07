@@ -6,7 +6,7 @@ public class PlayerMovement : MonoBehaviour
 {   
     
     public CharacterController controller;
-    public Animator animator;
+    private Animator animator;
     public WeaponSwitching weaponholder;
     
     //Speed and Height
@@ -38,10 +38,21 @@ public class PlayerMovement : MonoBehaviour
     //private float movementCounter;
     //private float idleCounter;
 
+    private float normalHeight;
+    public float crouchHeight;
+    private float targetHeight;
+
+    private bool isCrouched;
+    private Transform player;
+
+
     private void Start()
     {
         animator = GetComponentInChildren<Animator>();
+        normalHeight = controller.height;
+        player = transform;
         //weaponOrigin = weapon.localPosition;
+
     }
 
     // Update is called once per frame
@@ -50,8 +61,12 @@ public class PlayerMovement : MonoBehaviour
         checkAnimator();
         Movement();
         Animation();
-        checkSpeed();
-        
+        checkSpeed();   
+    }
+
+    private void FixedUpdate()
+    {
+        Crouch();
     }
 
     void  checkAnimator()
@@ -67,6 +82,7 @@ public class PlayerMovement : MonoBehaviour
     {
         isGrounded = Physics.CheckSphere(Groundcheck.position, groundDistance, groundMask);
 
+        //controling fall velocity
         if (isGrounded && velocity.y < 0)
         {
             velocity.y = -2f;
@@ -144,5 +160,22 @@ public class PlayerMovement : MonoBehaviour
     void HeadBob(float z, float x_Intensity, float y_Intensity)
     {
        // weapon.localPosition = new Vector3(Mathf.Sin(z) * x_Intensity, Mathf.Sin(z) * y_Intensity, weaponOrigin.z);
+    }
+
+    void Crouch()
+    {
+        if (Input.GetKey(KeyCode.LeftControl))
+        {
+            controller.height = Mathf.Lerp(controller.height, crouchHeight, 5f * Time.deltaTime);
+           // controller.height = crouchHeight;
+
+        }
+        else
+        {
+            //controller.height = normalHeight;
+            float lastHeight = controller.height;
+            controller.height = Mathf.Lerp(controller.height, normalHeight, 5*Time.deltaTime);
+            transform.position += new Vector3(0f, (controller.height - lastHeight)/2, 0f);
+        }
     }
 }

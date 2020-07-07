@@ -117,7 +117,8 @@ public class Gun : MonoBehaviour
     public spawnpoints Spawnpoints;
 
 
-
+    private Quaternion originalRotation;
+    private bool isCrouch;
 
     // Start is called before the first frame update
     void Start()
@@ -130,6 +131,8 @@ public class Gun : MonoBehaviour
         defaultY = mouselook.mouseSensitivityY;
         currentAmmo = maxAmmo;
         originalPosition = transform.localPosition;
+        originalRotation = transform.localRotation;
+        Debug.Log(originalRotation);
      
     }
 
@@ -144,7 +147,10 @@ public class Gun : MonoBehaviour
         Trigger();
         Reload();
         ADS();
+        InspectWeapon();
+        Melee();
     }
+
 
     private void OnEnable()
     {
@@ -202,7 +208,7 @@ public class Gun : MonoBehaviour
         RaycastHit hit;
         if(Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward,out hit, range))
         {
-            Debug.Log(hit.transform.name);
+            //Debug.Log(hit.transform.name);
 
             TargetObj target = hit.transform.GetComponent<TargetObj>();
             if(target != null)
@@ -234,30 +240,42 @@ public class Gun : MonoBehaviour
        
         if (Input.GetButton("Fire2") && !isReloading)
         {
-            transform.localPosition = Vector3.Lerp(transform.localPosition, aimPosition, Time.deltaTime * adsSpeed );
-            isAiming = true;
-            fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView, aimFov, fovSpeed * Time.deltaTime);
-            adjustSensitivity();
-            crosshair.color = new Color(crosshair.color.r, crosshair.color.g, crosshair.color.b, 0f);
+            ZoomIn();
         }
         else
         {
-            transform.localPosition = Vector3.Lerp(transform.localPosition, originalPosition, Time.deltaTime * adsSpeed);
-            isAiming = false;
-            fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView, defaultFov, fovSpeed * Time.deltaTime);
-            adjustSensitivity();
-            crosshair.color = new Color(crosshair.color.r, crosshair.color.g, crosshair.color.b, 0.5f);
+            ZoomOut();
         }
     }
+
+
+    void ZoomIn()
+    {
+        transform.localPosition = Vector3.Lerp(transform.localPosition, aimPosition, Time.deltaTime * adsSpeed);
+        isAiming = true;
+        fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView, aimFov, fovSpeed * Time.deltaTime);
+        adjustSensitivity();
+        crosshair.color = new Color(crosshair.color.r, crosshair.color.g, crosshair.color.b, 0f);
+    }
+
+    void ZoomOut()
+    {
+        transform.localPosition = Vector3.Lerp(transform.localPosition, originalPosition, Time.deltaTime * adsSpeed);
+        isAiming = false;
+        fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView, defaultFov, fovSpeed * Time.deltaTime);
+        adjustSensitivity();
+        crosshair.color = new Color(crosshair.color.r, crosshair.color.g, crosshair.color.b, 0.5f);
+    }
+    
 
     void adjustSensitivity()
     {
        if( isAiming && !isAdjust )
         {
             mouselook.mouseSensitivityX = mouselook.mouseSensitivityX * adsSensitivityX;
-            Debug.Log(mouselook.mouseSensitivityX);
+            //Debug.Log(mouselook.mouseSensitivityX);
             mouselook.mouseSensitivityY = mouselook.mouseSensitivityY * adsSensitivityY;
-            Debug.Log(mouselook.mouseSensitivityY);
+           // Debug.Log(mouselook.mouseSensitivityY);
             isAdjust = true;
         }
        else if (!isAiming && isAdjust)
@@ -268,42 +286,47 @@ public class Gun : MonoBehaviour
         }
     }
 
-   /* public void Aim()
+    
+    void InspectWeapon()
     {
-        if (Input.GetButton("Fire2") && !isReloading && !isRunning && !isInspecting)
-        if (Input.GetButton("Fire2") && !isReloading)
+        if (Input.GetKeyDown(KeyCode.T))
         {
+            animator.Play("Inspect", 0, 0f);
+        }
+    }
 
-            isAiming = true;
-            Start aiming
-            animator.SetBool("Aim", true);
 
-            When right click is released
-             fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView,
-                aimFov, fovSpeed * Time.deltaTime);
-
-            if (!soundHasPlayed)
+    void Melee()
+    {
+        if(Input.GetKeyDown(KeyCode.F))
+        {
+            int rnd = Random.Range(0, 2);
+            
+            if(rnd == 1)
             {
-                mainAudioSource.clip = SoundClips.aimSound;
-                mainAudioSource.Play();
-                soundHasPlayed = true;
+                StartCoroutine(meleeOne());
+            }
+            else
+            {
+                StartCoroutine(meleeTwo());
             }
         }
-        else
-        {
-            When right click is released
-             fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView,
-                 defaultFov, fovSpeed * Time.deltaTime);
+    }
 
-            isAiming = false;
-            Stop aiming
-            animator.SetBool("Aim", false);
-            soundHasPlayed = false;
-        }
+    IEnumerator meleeOne()
+    {
+        animator.Play("Knife Attack 1", 0 , 0f);
+      
+        yield return new WaitForSeconds(0.5f);
+    }
 
-    }*/
-
-
+    IEnumerator meleeTwo()
+    {
+        animator.Play("Knife Attack 2", 0, 0f);
+     
+        yield return new WaitForSeconds(0.5f);
+    }
+    
     void Reload()
     {
         if (Input.GetKeyDown(KeyCode.R) && currentAmmo >= 0 && currentAmmo != maxAmmo)
@@ -312,9 +335,6 @@ public class Gun : MonoBehaviour
         }
         else if (Input.GetKeyDown(KeyCode.R) && currentAmmo >= 0 && currentAmmo != maxAmmo && isAiming )
         {
-            isAiming = false;
-            fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView,
-            defaultFov, fovSpeed * Time.deltaTime);
             StartCoroutine(ReloadCouroutinewithAmmo());
         }
         else if (currentAmmo <= 0)
@@ -323,9 +343,6 @@ public class Gun : MonoBehaviour
         }
         else if (currentAmmo <= 0 && isAiming)
         {
-            isAiming = false;
-            fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView,
-            defaultFov, fovSpeed * Time.deltaTime);
             StartCoroutine(ReloadCouroutineNoAmmo());
         }
     }
@@ -359,6 +376,82 @@ public class Gun : MonoBehaviour
         yield return new WaitForSeconds(lightDuration);
         muzzleFlashLight.enabled = false;
     }
+
+    /* public void Aim()
+   {
+       if (Input.GetButton("Fire2") && !isReloading && !isRunning && !isInspecting)
+       if (Input.GetButton("Fire2") && !isReloading)
+       {
+
+           isAiming = true;
+           Start aiming
+           animator.SetBool("Aim", true);
+
+           When right click is released
+            fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView,
+               aimFov, fovSpeed * Time.deltaTime);
+
+           if (!soundHasPlayed)
+           {
+               mainAudioSource.clip = SoundClips.aimSound;
+               mainAudioSource.Play();
+               soundHasPlayed = true;
+           }
+       }
+       else
+       {
+           When right click is released
+            fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView,
+                defaultFov, fovSpeed * Time.deltaTime);
+
+           isAiming = false;
+           Stop aiming
+           animator.SetBool("Aim", false);
+           soundHasPlayed = false;
+       }
+
+   }*/
+
+    /*
+    IEnumerator tilt(Vector3 axis, float angle, float duration)
+    {
+
+        Quaternion from = transform.rotation;
+        Quaternion to = transform.rotation;
+        to *= Quaternion.Euler(axis * angle);
+
+        float elapsed = 0.0f;
+        while (elapsed < duration)
+        {
+            transform.rotation = Quaternion.Slerp(from, to, elapsed / duration);
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+        transform.rotation = to;
+    }
+    */
+
+    /*
+    void CrouchRotate()
+    {
+
+        if (Input.GetKey(KeyCode.LeftControl) && !isCrouch)
+        {
+            //transform.localRotation = Quaternion.Lerp(this.transform.localRotation, Quaternion.Euler(0, 0, 400f), 200f * Time.deltaTime);
+            //StartCoroutine(tilt(Vector3.forward, 45, 0.2f));
+            isCrouch = true;
+            //Debug.Log(transform.rotation);
+        }
+        else if (Input.GetKeyUp(KeyCode.LeftControl) && isCrouch)
+        {
+            //transform.localRotation = Quaternion.Lerp(this.transform.localRotation, originalRotation, 200f * Time.deltaTime);
+            //StartCoroutine(tilt(Vector3.forward, -45, 0.2f));
+            isCrouch = false;
+            //Debug.Log(transform.rotation);
+        }
+
+    }
+    */
 }
 
 

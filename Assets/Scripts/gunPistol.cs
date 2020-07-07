@@ -10,6 +10,15 @@ public class gunPistol : Gun
         {
             nextTimeToFire = Time.time + 1f / fireRate;
             Shoot();
+
+            //Spawn casing prefab at spawnpoint
+            var casing = Instantiate(Prefabs.casingPrefab,
+                Spawnpoints.casingSpawnPoint.transform.position,
+                Spawnpoints.casingSpawnPoint.transform.rotation);
+
+            //Add velocity to the bullet
+            casing.GetComponent<Rigidbody>().velocity =
+                 casing.transform.right * 5f;
         }
     }
 }
