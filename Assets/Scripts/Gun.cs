@@ -56,13 +56,13 @@ public class Gun : MonoBehaviour
         public AudioClip aimSound;
     }
     public soundClips SoundClips;
-    
-    public float nextTimeToFire = 0f;
 
+
+    //Boolean Section
     //Check if reloading
     private bool isReloading;
     //Holstering weapon
-    private bool hasBeenHolstered = false;
+    //private bool hasBeenHolstered = false;
     //If weapon is holstered
     private bool holstered;
     //Check if running
@@ -74,7 +74,7 @@ public class Gun : MonoBehaviour
     //Check if inspecting weapon
     private bool isInspecting;
     //check if sound has played
-    private bool soundHasPlayed = false;
+    //private bool soundHasPlayed = false;
     //adjustSen
     private bool isAdjust;
 
@@ -82,7 +82,9 @@ public class Gun : MonoBehaviour
     public int maxAmmo = 31;
     private int currentAmmo;
     public float reloadTime = 2f;
+    public float nextTimeToFire = 0f;
 
+    //Aiming
     private Vector3 originalPosition;
     public Vector3 aimPosition;
     public float adsSpeed = 8f;
@@ -119,6 +121,13 @@ public class Gun : MonoBehaviour
 
     private Quaternion originalRotation;
     private bool isCrouch;
+
+    [Header("Melee Section")]
+    //Melee Section
+    public Transform attackPoint;
+    public float attackRange = 0.5f;
+
+
 
     // Start is called before the first frame update
     void Start()
@@ -298,35 +307,64 @@ public class Gun : MonoBehaviour
 
     void Melee()
     {
-        if(Input.GetKeyDown(KeyCode.F))
+        if(Input.GetKeyDown(KeyCode.E))
         {
             int rnd = Random.Range(0, 2);
             
             if(rnd == 1)
             {
-                StartCoroutine(meleeOne());
+                 StartCoroutine(meleeOne());
+               // meleeOne();
             }
             else
             {
-                StartCoroutine(meleeTwo());
+                 StartCoroutine(meleeTwo());
+               // meleeTwo();
             }
         }
     }
 
     IEnumerator meleeOne()
+    //void meleeOne()
     {
         animator.Play("Knife Attack 1", 0 , 0f);
-      
-        yield return new WaitForSeconds(0.5f);
+        Collider[] hitThing = Physics.OverlapSphere(attackPoint.position, attackRange, canBeShot);
+
+        foreach (Collider enemy in hitThing)
+        {
+            //Debug.Log("We hit " + enemy.name);
+            enemy.GetComponent<Rigidbody>().AddForce(attackPoint.position.normalized * impactForce);
+        }
+        yield return new WaitForSeconds(2f);
     }
 
     IEnumerator meleeTwo()
+    //void meleeTwo()
     {
         animator.Play("Knife Attack 2", 0, 0f);
-     
-        yield return new WaitForSeconds(0.5f);
+        Collider[] hitThing = Physics.OverlapSphere(attackPoint.position, attackRange, canBeShot);
+
+        foreach(Collider enemy in hitThing)
+        {
+            //Debug.Log("We hit "+ enemy.name);
+
+            if (enemy.GetComponent<Rigidbody>() != null)
+            {
+                enemy.GetComponent<Rigidbody>().AddForce(attackPoint.position.normalized * impactForce);
+            }
+        }
+        yield return new WaitForSeconds(1f);
     }
-    
+
+    private void OnDrawGizmosSelected()
+    {   
+        if(attackPoint == null)
+        {
+            return;
+        }
+        Gizmos.DrawWireSphere(attackPoint.position, attackRange);
+    }
+
     void Reload()
     {
         if (Input.GetKeyDown(KeyCode.R) && currentAmmo >= 0 && currentAmmo != maxAmmo)
