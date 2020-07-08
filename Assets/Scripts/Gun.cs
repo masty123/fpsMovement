@@ -96,6 +96,8 @@ public class Gun : MonoBehaviour
     public GameObject bulletHole;
     public LayerMask canBeShot;
 
+    private PlayerMovement slide;
+
     [System.Serializable]
     public class prefabs
     {
@@ -140,8 +142,10 @@ public class Gun : MonoBehaviour
         defaultY = mouselook.mouseSensitivityY;
         currentAmmo = maxAmmo;
         originalPosition = transform.localPosition;
-        originalRotation = transform.localRotation;
-        Debug.Log(originalRotation);
+        slide = GetComponentInParent<PlayerMovement>();
+
+        //originalRotation = transform.localRotation;
+        //Debug.Log(originalRotation);
      
     }
 
@@ -158,6 +162,7 @@ public class Gun : MonoBehaviour
         ADS();
         InspectWeapon();
         Melee();
+        SlideAnim();
     }
 
 
@@ -192,13 +197,11 @@ public class Gun : MonoBehaviour
            */
 
             //Spawn casing prefab at spawnpoint
-            var casing = Instantiate(Prefabs.casingPrefab,
-                Spawnpoints.casingSpawnPoint.transform.position,
-                Spawnpoints.casingSpawnPoint.transform.rotation);
+            GameObject casing = Instantiate(Prefabs.casingPrefab.gameObject, Spawnpoints.casingSpawnPoint.position, Spawnpoints.casingSpawnPoint.rotation);
 
             //Add velocity to the bullet
-           casing.GetComponent<Rigidbody>().velocity =
-                casing.transform.right * 5f;
+           casing.GetComponent<Rigidbody>().velocity = casing.transform.right * 5f;
+            Destroy(casing, 5f);
 
         }
     }
@@ -490,6 +493,14 @@ public class Gun : MonoBehaviour
 
     }
     */
+
+    void SlideAnim()
+    {
+        if(slide.isSlide)
+        {
+            animator.Play("Idle", 0, 0f);
+        }
+    }
 }
 
 

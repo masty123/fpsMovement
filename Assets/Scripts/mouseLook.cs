@@ -10,17 +10,30 @@ public class mouseLook : MonoBehaviour
 
     public Transform playerBody;
 
+    private Camera fpsCam;
+    public PlayerMovement slide;
+
+    [Tooltip("How fast the camera field of view changes when aiming.")]
+    public float fovSpeed = 15.0f;
+    //Default camera field of view
+    [Tooltip("Default value for camera field of view (40 is recommended).")]
+    public float defaultFov = 90.0f;
+    public float slideFov = 120.0f;
+
     float xRotation = 0f;
     // Start is called before the first frame update
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
+        fpsCam = this.GetComponent<Camera>();
+        slide = this.GetComponentInParent<PlayerMovement>();
     }
 
     // Update is called once per frame
     void Update()
     {
         looking();
+        SlideFOV();
     }
 
     void looking()
@@ -33,5 +46,13 @@ public class mouseLook : MonoBehaviour
 
         transform.localRotation = Quaternion.Euler(xRotation, 0f, 0f);
         playerBody.Rotate(Vector3.up * mouseX);
+    }
+
+    void SlideFOV()
+    {   
+        if(slide.isSlide)
+        {
+            fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView, slideFov, fovSpeed * Time.deltaTime);
+        }
     }
 }

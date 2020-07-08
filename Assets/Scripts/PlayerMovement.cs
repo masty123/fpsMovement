@@ -40,17 +40,19 @@ public class PlayerMovement : MonoBehaviour
 
     private float normalHeight;
     public float crouchHeight;
-    private float targetHeight;
-
-    private bool isCrouched;
-    private Transform player;
-
+    public float slideHeight;
+    public float slideSpeed = 10f;
+    public bool isSlide = false;
+    public float slideTimer;
+    public float slideTimerMax  = 2.5f;
+    private Vector3 originalVelo;
 
     private void Start()
     {
         animator = GetComponentInChildren<Animator>();
         normalHeight = controller.height;
-        player = transform;
+        originalVelo = velocity;
+
         //weaponOrigin = weapon.localPosition;
 
     }
@@ -61,7 +63,8 @@ public class PlayerMovement : MonoBehaviour
         checkAnimator();
         Movement();
         Animation();
-        checkSpeed();   
+        checkSpeed();
+        Slide();
     }
 
     private void FixedUpdate()
@@ -178,4 +181,35 @@ public class PlayerMovement : MonoBehaviour
             transform.position += new Vector3(0f, (controller.height - lastHeight)/2, 0f);
         }
     }
+
+    void Slide()
+    {   
+         
+        if (Input.GetKey(KeyCode.X) && Input.GetKey(KeyCode.W) && Input.GetKey(KeyCode.LeftShift) && !isSlide)
+        {
+            slideTimer = 0.0f; // start timer
+            isSlide = true;
+        }
+
+
+        if (isSlide)
+        {
+            controller.height = Mathf.Lerp(controller.height, slideHeight, 1f * Time.deltaTime);
+            speed = slideSpeed;
+            Debug.Log("Slide!");
+
+            slideTimer += Time.deltaTime;
+            Debug.Log(slideTimer);
+            if (slideTimer > slideTimerMax)
+            {
+                isSlide = false;
+                Debug.Log("not slide anymore");
+                velocity = originalVelo;
+                float lastHeight = controller.height;
+                controller.height = Mathf.Lerp(controller.height, normalHeight, 5 * Time.deltaTime);
+                transform.position += new Vector3(0f, (controller.height - lastHeight) / 2, 0f);
+            }
+        }
+    }
+
 }
