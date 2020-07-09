@@ -48,18 +48,17 @@ public class PlayerMovement : MonoBehaviour
     public bool isSlide = false;
     public float slideTimer;
     public float slideTimerMax = 2.5f;
-    private Vector3 originalVelo;
+    //private Vector3 originalVelo;
     public float slideSpeedReduceRate = 3f;
     private bool firstSlide;
+    private float distanceToGround;
 
     private void Start()
     {
         animator = GetComponentInChildren<Animator>();
         normalHeight = controller.height;
-        originalVelo = velocity;
-
         //weaponOrigin = weapon.localPosition;
-
+        distanceToGround = controller.height / 2;
     }
 
     // Update is called once per frame
@@ -70,14 +69,13 @@ public class PlayerMovement : MonoBehaviour
         Animation();
         checkSpeed();
         Slide();
-
     }
 
     //Smooth Crouch
     private void FixedUpdate()
     {
         Crouch();
-
+        Slide();
     }
 
     void checkAnimator()
@@ -178,7 +176,7 @@ public class PlayerMovement : MonoBehaviour
             controller.height = Mathf.Lerp(controller.height, crouchHeight, 5f * Time.deltaTime);
 
         }
-        else
+        else if (!isSlide)
         {
             float lastHeight = controller.height;
             controller.height = Mathf.Lerp(controller.height, normalHeight, 5 * Time.deltaTime);
@@ -208,7 +206,7 @@ public class PlayerMovement : MonoBehaviour
             else
             {
                 slideTimer += Time.deltaTime;
-                controller.height = Mathf.Lerp(controller.height, slideHeight, 10f * Time.deltaTime); //Bouncing need fix
+                controller.height = Mathf.Lerp(controller.height, slideHeight, 5f * Time.deltaTime); //Bouncing need fix
             }
         }
 
@@ -218,6 +216,7 @@ public class PlayerMovement : MonoBehaviour
             float lastHeight = controller.height;
             controller.height = Mathf.Lerp(controller.height, normalHeight, 5f * Time.deltaTime);
             transform.position += new Vector3(0f, (controller.height - lastHeight) / 2, 0f);
+            //controller.center  = new Vector3(0, 0, 0);
         }
         else if (slideTimer < slideTimerMax && speed >= 0f)
         {

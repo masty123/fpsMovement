@@ -377,7 +377,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 0, y: 0, z: 0, w: 0}
+  m_BoundingSphereOverride: {x: 4.88e-42, y: 6e-44, z: 0, w: 4e-45}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
@@ -1938,7 +1938,7 @@ PrefabInstance:
     - target: {fileID: 3205434761818704996, guid: 621ff41b3d67d79489c6c6d8a8523885,
         type: 3}
       propertyPath: slideHeight
-      value: 0.5
+      value: 0.1
       objectReference: {fileID: 0}
     - target: {fileID: 3205434761818704996, guid: 621ff41b3d67d79489c6c6d8a8523885,
         type: 3}
