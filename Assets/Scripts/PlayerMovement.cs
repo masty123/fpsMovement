@@ -3,12 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
-{   
-    
+{
+
     public CharacterController controller;
     private Animator animator;
     public WeaponSwitching weaponholder;
-    
+
     //Speed and Height
     public float speed = 12f;
     public float walkSpeed = 12f;
@@ -20,7 +20,7 @@ public class PlayerMovement : MonoBehaviour
     public Transform Groundcheck;
     public float groundDistance = 0.4f;
     public LayerMask groundMask;
-        
+
     Vector3 velocity;
     Vector3 move;
 
@@ -38,14 +38,19 @@ public class PlayerMovement : MonoBehaviour
     //private float movementCounter;
     //private float idleCounter;
 
+    //Crouch variables
     private float normalHeight;
     public float crouchHeight;
+
+    //Slide variables
     public float slideHeight;
     public float slideSpeed = 10f;
     public bool isSlide = false;
     public float slideTimer;
-    public float slideTimerMax  = 2.5f;
+    public float slideTimerMax = 2.5f;
     private Vector3 originalVelo;
+    public float slideSpeedReduceRate = 3f;
+    private bool firstSlide;
 
     private void Start()
     {
@@ -65,14 +70,16 @@ public class PlayerMovement : MonoBehaviour
         Animation();
         checkSpeed();
         Slide();
+
     }
 
+    //Smooth Crouch
     private void FixedUpdate()
     {
         Crouch();
     }
 
-    void  checkAnimator()
+    void checkAnimator()
     {
         if (indexWeapon != weaponholder.selectedWeapon)
         {
@@ -101,6 +108,8 @@ public class PlayerMovement : MonoBehaviour
         //Player Movement
         controller.Move(move * speed * Time.deltaTime);
 
+
+
         //Jump
         if (Input.GetButtonDown("Jump") && isGrounded)
         {
@@ -127,7 +136,7 @@ public class PlayerMovement : MonoBehaviour
     }
 
     void Animation()
-    {   
+    {
         //movement Section
         if (currentSpeed != 0)
         {
@@ -137,14 +146,15 @@ public class PlayerMovement : MonoBehaviour
         {
             animator.SetBool("Walk", false);
         }
-        
+
         //Sprint
-        if (Input.GetKey(KeyCode.LeftShift))
+        if (Input.GetKey(KeyCode.LeftShift) && Input.GetKey(KeyCode.W) && !isSlide)
         {
             animator.SetBool("Run", true);
             speed = sprintSpeed;
         }
-        else
+        else if(!isSlide)
+        //else
         {
             animator.SetBool("Run", false);
             speed = walkSpeed;
@@ -157,59 +167,69 @@ public class PlayerMovement : MonoBehaviour
         dist = transform.position - lastUpdatePos;
         currentSpeed = dist.magnitude / Time.deltaTime;
         lastUpdatePos = transform.position;
-        //if (currentSpeed != 0) { Debug.Log(gameObject.name + " movement speed is:" + currentSpeed); }     
     }
 
-    void HeadBob(float z, float x_Intensity, float y_Intensity)
-    {
-       // weapon.localPosition = new Vector3(Mathf.Sin(z) * x_Intensity, Mathf.Sin(z) * y_Intensity, weaponOrigin.z);
-    }
 
     void Crouch()
     {
-        if (Input.GetKey(KeyCode.LeftControl))
+        if (Input.GetKey(KeyCode.LeftControl) )
         {
             controller.height = Mathf.Lerp(controller.height, crouchHeight, 5f * Time.deltaTime);
-           // controller.height = crouchHeight;
+            Debug.Log(controller.height);
 
         }
         else
         {
-            //controller.height = normalHeight;
             float lastHeight = controller.height;
-            controller.height = Mathf.Lerp(controller.height, normalHeight, 5*Time.deltaTime);
-            transform.position += new Vector3(0f, (controller.height - lastHeight)/2, 0f);
+            Debug.Log(lastHeight);
+            controller.height = Mathf.Lerp(controller.height, normalHeight, 5 * Time.deltaTime);
+            transform.position += new Vector3(0f, (controller.height - lastHeight) / 2, 0f);
         }
     }
 
     void Slide()
-    {   
-         
-        if (Input.GetKey(KeyCode.X) && Input.GetKey(KeyCode.W) && Input.GetKey(KeyCode.LeftShift) && !isSlide)
+    {
+
+        if (Input.GetKeyDown(KeyCode.X) && Input.GetKey(KeyCode.W) && Input.GetKey(KeyCode.LeftShift) && !isSlide)
         {
             slideTimer = 0.0f; // start timer
             isSlide = true;
+            firstSlide = true;
         }
 
 
         if (isSlide)
-        {
-            controller.height = Mathf.Lerp(controller.height, slideHeight, 1f * Time.deltaTime);
-            speed = slideSpeed;
-            Debug.Log("Slide!");
-
-            slideTimer += Time.deltaTime;
-            Debug.Log(slideTimer);
-            if (slideTimer > slideTimerMax)
+        {   
+            if(firstSlide)
             {
-                isSlide = false;
-                Debug.Log("not slide anymore");
-                velocity = originalVelo;
-                float lastHeight = controller.height;
-                controller.height = Mathf.Lerp(controller.height, normalHeight, 5 * Time.deltaTime);
-                transform.position += new Vector3(0f, (controller.height - lastHeight) / 2, 0f);
+                controller.height = Mathf.Lerp(controller.height, slideHeight, 5f * Time.deltaTime); //Bouncing need fix
+                speed = slideSpeed;
+                firstSlide = false;
+            }
+            else
+            {
+                slideTimer += Time.deltaTime;
             }
         }
+
+        if (slideTimer > slideTimerMax )
+        {
+            isSlide = false;
+            velocity = originalVelo;
+            float lastHeight = controller.height;
+            controller.height = Mathf.Lerp(controller.height, normalHeight, 5f * Time.deltaTime);
+            transform.position += new Vector3(0f, (controller.height - lastHeight) / 2, 0f);
+        }
+        else if (slideTimer < slideTimerMax && speed >= 0f)
+        {
+            speed -= slideSpeedReduceRate * Time.deltaTime ;
+        }
     }
+
+    /*void HeadBob(float z, float x_Intensity, float y_Intensity)
+    {
+        // weapon.localPosition = new Vector3(Mathf.Sin(z) * x_Intensity, Mathf.Sin(z) * y_Intensity, weaponOrigin.z);
+    }
+    */
 
 }
