@@ -77,6 +77,7 @@ public class PlayerMovement : MonoBehaviour
     private void FixedUpdate()
     {
         Crouch();
+
     }
 
     void checkAnimator()
@@ -175,13 +176,11 @@ public class PlayerMovement : MonoBehaviour
         if (Input.GetKey(KeyCode.LeftControl) )
         {
             controller.height = Mathf.Lerp(controller.height, crouchHeight, 5f * Time.deltaTime);
-            Debug.Log(controller.height);
 
         }
         else
         {
             float lastHeight = controller.height;
-            Debug.Log(lastHeight);
             controller.height = Mathf.Lerp(controller.height, normalHeight, 5 * Time.deltaTime);
             transform.position += new Vector3(0f, (controller.height - lastHeight) / 2, 0f);
         }
@@ -202,20 +201,20 @@ public class PlayerMovement : MonoBehaviour
         {   
             if(firstSlide)
             {
-                controller.height = Mathf.Lerp(controller.height, slideHeight, 5f * Time.deltaTime); //Bouncing need fix
+                //controller.height = slideHeight;
                 speed = slideSpeed;
                 firstSlide = false;
             }
             else
             {
                 slideTimer += Time.deltaTime;
+                controller.height = Mathf.Lerp(controller.height, slideHeight, 10f * Time.deltaTime); //Bouncing need fix
             }
         }
 
-        if (slideTimer > slideTimerMax )
+        if (slideTimer >= slideTimerMax )
         {
             isSlide = false;
-            velocity = originalVelo;
             float lastHeight = controller.height;
             controller.height = Mathf.Lerp(controller.height, normalHeight, 5f * Time.deltaTime);
             transform.position += new Vector3(0f, (controller.height - lastHeight) / 2, 0f);
