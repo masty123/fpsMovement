@@ -1,14 +1,17 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class WeaponSwitching : MonoBehaviour
 {
     public int selectedWeapon = 0;
+
     // Start is called before the first frame update
     void Start()
     {
         SelectedWeapon();
+
     }
 
     // Update is called once per frame
@@ -80,6 +83,8 @@ public class WeaponSwitching : MonoBehaviour
             if(i == selectedWeapon)
             {
                 weapon.gameObject.SetActive(true);
+           
+               
             }
             else
             {

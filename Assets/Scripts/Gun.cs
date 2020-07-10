@@ -3,11 +3,22 @@ using System.Collections;
 using UnityEngine.UI;
 public class Gun : MonoBehaviour
 {
+    [Header("Gun Properties")]
     public float damage = 10f;
     public float range = 100f;
     public float impactForce = 300f;
     public float fireRate = 15f;
     public float aimSpeed;
+    //Ammo
+    public int magazine = 180;
+    public int maxAmmo = 31;
+    public int currentAmmo;
+    public float reloadTime = 2f;
+    public float nextTimeToFire = 0f;
+    //Aiming
+    private Vector3 originalPosition;
+    public Vector3 aimPosition;
+    public float adsSpeed = 8f;
 
     public Camera fpsCam;
 
@@ -17,9 +28,9 @@ public class Gun : MonoBehaviour
     public float lightDuration;
     //public GameObject impactEffect;
     public Animator animator;
-    public mouseLook mouselook;
 
-    //percentage
+    [Header("Mouse Sensitivity")]
+    private mouseLook mouselook;
     public float adsSensitivityX;
     public float adsSensitivityY;
     public float defaultX;
@@ -59,6 +70,7 @@ public class Gun : MonoBehaviour
 
 
     //Boolean Section
+
     //Check if reloading
     private bool isReloading;
     //Holstering weapon
@@ -78,16 +90,8 @@ public class Gun : MonoBehaviour
     //adjustSen
     private bool isAdjust;
 
-    //Ammo
-    public int maxAmmo = 31;
-    private int currentAmmo;
-    public float reloadTime = 2f;
-    public float nextTimeToFire = 0f;
 
-    //Aiming
-    private Vector3 originalPosition;
-    public Vector3 aimPosition;
-    public float adsSpeed = 8f;
+
 
     [Tooltip("How much force is applied to the bullet when shooting.")]
     public float bulletForce = 400.0f;
@@ -129,6 +133,10 @@ public class Gun : MonoBehaviour
     public Transform attackPoint;
     public float attackRange = 0.5f;
 
+    [Header("Text Properties")]
+    public Text ammo;
+    public Text magAmmo;
+
 
 
     // Start is called before the first frame update
@@ -140,13 +148,16 @@ public class Gun : MonoBehaviour
         //Get default sensitivity
         defaultX = mouselook.mouseSensitivityX;
         defaultY = mouselook.mouseSensitivityY;
+
+        //Ammo stuff
         currentAmmo = maxAmmo;
         originalPosition = transform.localPosition;
         slide = GetComponentInParent<PlayerMovement>();
 
-        //originalRotation = transform.localRotation;
-        //Debug.Log(originalRotation);
-     
+        ammo = GameObject.FindGameObjectWithTag("currentAmmo").GetComponent<Text>();
+        magAmmo = GameObject.FindGameObjectWithTag("maxAmmo").GetComponent<Text>();
+
+
     }
 
     // Update is called once per frame
@@ -163,8 +174,16 @@ public class Gun : MonoBehaviour
         InspectWeapon();
         Melee();
         SlideAnim();
+
+        updateAmmo();
+
     }
 
+    void  updateAmmo()
+    {
+        ammo.text = currentAmmo.ToString();
+        magAmmo.text = magazine.ToString();
+    }
 
     private void OnEnable()
     {
@@ -179,7 +198,7 @@ public class Gun : MonoBehaviour
     public virtual void Trigger()
     {   
 
-        if (Input.GetButton("Fire1") && Time.time >= nextTimeToFire)
+        if (Input.GetButton("Fire1") && Time.time >= nextTimeToFire && currentAmmo > 0f)
         {
             nextTimeToFire = Time.time + 1f / fireRate;
             Shoot();
@@ -216,6 +235,7 @@ public class Gun : MonoBehaviour
 
         //wasting ammo?
         currentAmmo--;
+        ammo.text = currentAmmo.ToString();
 
         RaycastHit hit;
         if(Physics.Raycast(fpsCam.transform.position, fpsCam.transform.forward,out hit, range))
@@ -370,44 +390,60 @@ public class Gun : MonoBehaviour
 
     void Reload()
     {
-        if (Input.GetKeyDown(KeyCode.R) && currentAmmo >= 0 && currentAmmo != maxAmmo)
+        if (Input.GetKeyDown(KeyCode.R) && currentAmmo >= 0 && currentAmmo != maxAmmo && magazine > 0f)
         {
             StartCoroutine(ReloadCouroutinewithAmmo());
+            magAmmo.text = magazine.ToString();
         }
-        else if (Input.GetKeyDown(KeyCode.R) && currentAmmo >= 0 && currentAmmo != maxAmmo && isAiming )
-        {
-            StartCoroutine(ReloadCouroutinewithAmmo());
-        }
-        else if (currentAmmo <= 0)
+        else if (currentAmmo <= 0 && magazine > 0f)
         {
             StartCoroutine(ReloadCouroutineNoAmmo());
-        }
-        else if (currentAmmo <= 0 && isAiming)
-        {
-            StartCoroutine(ReloadCouroutineNoAmmo());
+            magAmmo.text = magazine.ToString();
+
         }
     }
 
     IEnumerator ReloadCouroutineNoAmmo()
-    {
+    {       
+        if(maxAmmo >= 0)
+        {
             isReloading = true;
             animator.Play("Reload Out Of Ammo", 0, 0f);
             shootAudioSource.clip = SoundClips.reloadSoundOutOfAmmo;
             shootAudioSource.Play();
             yield return new WaitForSeconds(reloadTime);
             currentAmmo = maxAmmo;
+            magazine -= maxAmmo;
             isReloading = false;
+        }
+          
     }
 
     IEnumerator ReloadCouroutinewithAmmo()
-    {
-        isReloading = true;
-        animator.Play("Reload Ammo Left", 0, 0f);
-        shootAudioSource.clip = SoundClips.reloadSoundAmmoLeft;
-        shootAudioSource.Play();
-        yield return new WaitForSeconds(reloadTime);
-        currentAmmo = maxAmmo;
-        isReloading = false;
+    {   
+        if(maxAmmo >= 0f)
+        {
+            isReloading = true;
+            animator.Play("Reload Ammo Left", 0, 0f);
+            shootAudioSource.clip = SoundClips.reloadSoundAmmoLeft;
+            shootAudioSource.Play();
+            yield return new WaitForSeconds(reloadTime);
+            
+            int remainingAmmo = (maxAmmo - currentAmmo);
+            int result = (magazine - remainingAmmo);
+            if (result > 0)
+            {
+                currentAmmo += remainingAmmo;
+                magazine -= remainingAmmo;
+            }
+            else
+            {
+                currentAmmo += magazine;
+                magazine = 0;
+            }
+            isReloading = false;
+        }
+      
     }
 
     private IEnumerator MuzzleFlashLight()

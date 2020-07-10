@@ -13,6 +13,9 @@ TagManager:
   - wehrmacht_c
   - wehrmacht_a
   - Crosshair
+  - weapon_holder
+  - maxAmmo
+  - currentAmmo
   layers:
   - Default
   - TransparentFX
