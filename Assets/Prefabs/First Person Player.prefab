@@ -5618,7 +5618,7 @@ MonoBehaviour:
   impactForce: 300
   fireRate: 15
   aimSpeed: 0
-  magazine: 20
+  magazine: 90
   maxAmmo: 31
   currentAmmo: 0
   reloadTime: 2
