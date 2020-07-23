@@ -231,7 +231,22 @@ public class Gun : MonoBehaviour
         shootAudioSource.clip = SoundClips.shootSound;
         shootAudioSource.Play();
         StartCoroutine(MuzzleFlashLight());
+           
+
+        //For using aiming animation;   
+        /*
+        if (isAiming && Input.GetButton("Fire1") && Input.GetButton("Fire2"))
+        {
+            Debug.Log(isAiming);
+            animator.Play("Aim Fire", 0, 0f);
+        }
+        else if (Input.GetButton("Fire1"))
+        {
+            animator.Play("Fire", 0, 0f);
+        }*/
+
         animator.Play("Fire", 0, 0f);
+
 
         //wasting ammo?
         currentAmmo--;
@@ -252,6 +267,7 @@ public class Gun : MonoBehaviour
             {
                 hit.rigidbody.AddForce(-hit.normal * impactForce);
             }
+
             //GameObject impactGO = Instantiate(impactEffect, hit.point, Quaternion.LookRotation(hit.normal));
             //Destroy(impactGO, 2f);
             hit = new RaycastHit();
@@ -273,10 +289,14 @@ public class Gun : MonoBehaviour
         if (Input.GetButton("Fire2") && !isReloading)
         {
             ZoomIn();
+            //animator.Play("Aim In", 0, 0f);
+
         }
         else
         {
             ZoomOut();
+           // animator.Play("Aim Out", 0, 0f);
+
         }
     }
 
@@ -285,6 +305,8 @@ public class Gun : MonoBehaviour
     {
         transform.localPosition = Vector3.Lerp(transform.localPosition, aimPosition, Time.deltaTime * adsSpeed);
         isAiming = true;
+        // if want to use aim animation (0.005, -1, 0.111);
+        //animator.SetBool("Aim", true);
         fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView, aimFov, fovSpeed * Time.deltaTime);
         adjustSensitivity();
         crosshair.color = new Color(crosshair.color.r, crosshair.color.g, crosshair.color.b, 0f);
@@ -293,6 +315,7 @@ public class Gun : MonoBehaviour
     void ZoomOut()
     {
         transform.localPosition = Vector3.Lerp(transform.localPosition, originalPosition, Time.deltaTime * adsSpeed);
+        //animator.SetBool("Aim", false);
         isAiming = false;
         fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView, defaultFov, fovSpeed * Time.deltaTime);
         adjustSensitivity();
