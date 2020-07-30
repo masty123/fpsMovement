@@ -234,7 +234,8 @@ public class Gun : MonoBehaviour
            
 
         //For using aiming animation;   
-        /*
+        
+
         if (isAiming && Input.GetButton("Fire1") && Input.GetButton("Fire2"))
         {
             Debug.Log(isAiming);
@@ -243,9 +244,10 @@ public class Gun : MonoBehaviour
         else if (Input.GetButton("Fire1"))
         {
             animator.Play("Fire", 0, 0f);
-        }*/
+        }
+  
 
-        animator.Play("Fire", 0, 0f);
+        //animator.Play("Fire", 0, 0f);
 
 
         //wasting ammo?
@@ -295,7 +297,7 @@ public class Gun : MonoBehaviour
         else
         {
             ZoomOut();
-           // animator.Play("Aim Out", 0, 0f);
+            //animator.Play("Aim Out", 0, 0f);
 
         }
     }
@@ -305,8 +307,16 @@ public class Gun : MonoBehaviour
     {
         transform.localPosition = Vector3.Lerp(transform.localPosition, aimPosition, Time.deltaTime * adsSpeed);
         isAiming = true;
-        // if want to use aim animation (0.005, -1, 0.111);
-        //animator.SetBool("Aim", true);
+        /*
+         if want to use aim animation 
+            For AK47 - (0.005, -0.1, 0.111); 
+            For G18 - (0.005, -0.11, 0); 
+
+         else if want to revert
+            For AK47 - (-0.14, -0.03, 0.111); 
+            For G18 - (-0.185, 0.005, 0); 
+        */
+        animator.SetBool("Aim", true);
         fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView, aimFov, fovSpeed * Time.deltaTime);
         adjustSensitivity();
         crosshair.color = new Color(crosshair.color.r, crosshair.color.g, crosshair.color.b, 0f);
@@ -315,7 +325,7 @@ public class Gun : MonoBehaviour
     void ZoomOut()
     {
         transform.localPosition = Vector3.Lerp(transform.localPosition, originalPosition, Time.deltaTime * adsSpeed);
-        //animator.SetBool("Aim", false);
+        animator.SetBool("Aim", false);
         isAiming = false;
         fpsCam.fieldOfView = Mathf.Lerp(fpsCam.fieldOfView, defaultFov, fovSpeed * Time.deltaTime);
         adjustSensitivity();

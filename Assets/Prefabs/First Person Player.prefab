@@ -518,7 +518,7 @@ MonoBehaviour:
   currentAmmo: 0
   reloadTime: 2
   nextTimeToFire: 0
-  aimPosition: {x: -0.185, y: 0.005, z: 0}
+  aimPosition: {x: -0.185, y: -0.11, z: 0}
   adsSpeed: 8
   fpsCam: {fileID: 3205434760624006950}
   muzzleFlash: {fileID: 8685399791568200119}
@@ -5623,8 +5623,8 @@ MonoBehaviour:
   currentAmmo: 0
   reloadTime: 2
   nextTimeToFire: 0
-  aimPosition: {x: -0.17, y: -0.02, z: 0.111}
-  adsSpeed: 8
+  aimPosition: {x: -0.14, y: -0.03, z: 0.111}
+  adsSpeed: 12
   fpsCam: {fileID: 3205434760624006950}
   muzzleFlash: {fileID: 8685399790444012280}
   muzzleFlashLight: {fileID: 3205434761250151673}

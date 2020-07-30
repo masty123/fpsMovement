@@ -2174,13 +2174,18 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3205434762069361248, guid: 621ff41b3d67d79489c6c6d8a8523885,
         type: 3}
-      propertyPath: adsSpeed
-      value: 12
+      propertyPath: aimPosition.x
+      value: 0.005
       objectReference: {fileID: 0}
     - target: {fileID: 3205434762069361248, guid: 621ff41b3d67d79489c6c6d8a8523885,
         type: 3}
-      propertyPath: aimPosition.x
+      propertyPath: aimPosition.y
       value: -0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 3205434762230398683, guid: 621ff41b3d67d79489c6c6d8a8523885,
+        type: 3}
+      propertyPath: aimPosition.x
+      value: 0.005
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 621ff41b3d67d79489c6c6d8a8523885, type: 3}
